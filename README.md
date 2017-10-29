@@ -8,9 +8,12 @@ $ git clone git@github.com:internetfriendsforever/Wireframes.sketchplugin.git
 ```
 
 ## Usage
-Sketch Plugins -> Wireframes -> Export wireframes (⌘⇧w)
+In Sketch:
 
-Create link from layer by naming it `->[artboard name]`
+- Create pages to group screens as different flows (i.e. signup, send email, delete account, etc.)
+- Create artboards within pages to create different screens (i.e. login, list, detail, error, etc.)
+- Create a link from layer by naming it `->[artboard name]`
+- Export from menu bar: Plugins -> Wireframes -> Export wireframes (⌘⇧w)
 
 ## TODO
 - Make links work
