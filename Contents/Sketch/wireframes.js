@@ -84,42 +84,36 @@ function onExportWireframes (context) {
 
   deleteFile(exportPath)
   createFolder(exportPath)
-  createFolder(`${exportPath}/pages`)
 
   // index.html
   writeTextToFile(`${exportPath}/index.html`, `
-    <ul>
-      ${map(document.pages(), page => `
-        <li>
-          <a href="pages/${slug(page.name())}/index.html">
-            ${page.name()}
-          </a>
-        </li>
-      `).join('\n')}
-    </ul>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+      <h1>Pages</h1>
+      <ul>
+        ${map(document.pages().reverse(), page => `
+          <li>
+            <a href="${slug(page.name())}/index.html">
+              ${page.name()}
+            </a>
+          </li>
+        `).join('\n')}
+      </ul>
+    </body>
   `)
 
-  // pages/[page].html
+  // [page]/index.html
   document.pages().forEach(page => {
-    const folder = `${exportPath}/pages/${slug(page.name())}`
-    const indexPath = `${folder}/index.html`
+    const folder = `${exportPath}/${slug(page.name())}`
 
     createFolder(folder)
-    writeTextToFile(indexPath, `
-      ${map(page.artboards(), artboard => `
-        <li>
-          <a href="${slug(artboard.name())}/index.html">
-            ${artboard.name()}
-          </a>
-        </li>
-      `).join('\n')}
-    `)
 
     page.artboards().forEach(artboard => {
-      const boardFolder = `${folder}/${slug(artboard.name())}`
-      const boardIndexPath = `${boardFolder}/index.html`
-      const boardImageName = 'image.png'
-      const boardImagePath = `${boardFolder}/${boardImageName}`
+      const boardIndexPath = `${folder}/${slug(artboard.name())}.html`
+      const boardImageName = `${slug(artboard.name())}.png`
+      const boardImagePath = `${folder}/${boardImageName}`
 
       const slice = MSSliceLayer.sliceLayerFromLayer(artboard)
       const rect = artboard.absoluteRect()
@@ -128,9 +122,7 @@ function onExportWireframes (context) {
       slice.absoluteRect().setY(rect.origin().y)
       slice.absoluteRect().setWidth(rect.size().width)
       slice.absoluteRect().setHeight(rect.size().height)
-      slice.exportOptions().exportFormats().lastObject().setScale(4)
-
-      createFolder(boardFolder)
+      slice.exportOptions().exportFormats().lastObject().setScale(2)
 
       document.saveArtboardOrSlice_toFile(slice, boardImagePath)
 
@@ -160,11 +152,18 @@ function onExportWireframes (context) {
               const width = (layerRect.size.width / rect.size().width) * 100 + '%'
               const height = (layerRect.size.height / rect.size().height) * 100 + '%'
               const style = `left: ${left}; top: ${top}; width: ${width}; height: ${height};`
-              return `<a href="../${slug(stripped)}/index.html" style="${style}"></a>`
+              return `<a href="${slug(stripped)}.html" style="${style}"></a>`
             }).join('\n')}
 
             <img src="${boardImageName}" />
           </div>
+          <script>
+            document.addEventListener('touchstart', e => {
+              if (e.touches.length >= 3) {
+                window.location.href = '../'
+              }
+            })
+          </script>
         </body>
       `)
     })
