@@ -1,0 +1,17 @@
+{
+  "name": "Wireframes",
+  "identifier": "com.internetfriendsforever.wireframes",
+  "version": "1.0",
+  "description": "Export HTML wireframes from Sketch.",
+  "authorEmail": "anyone@internetfriendsforever.no",
+  "author": "internetfriendsforever",
+  "commands": [
+    {
+      "script": "wireframes.js",
+      "handler": "onExportWireframes",
+      "shortcut": "command shift w",
+      "name": "Export wireframes",
+      "identifier": "exportWireframes"
+    }
+  ]
+}
