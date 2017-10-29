@@ -40,8 +40,20 @@ function deleteFile (name) {
 function map (array, fn) {
   const result = []
 
-  array.forEach((item, i) => {
-    result[i] = fn(item)
+  array.forEach(item => {
+    result.push(fn(item))
+  })
+
+  return result
+}
+
+function filter (array, fn) {
+  const result = []
+
+  array.forEach(item => {
+    if (fn(item)) {
+      result.push(item)
+    }
   })
 
   return result
@@ -56,6 +68,16 @@ function slug (text) {
     .replace(/-+$/, '')
 }
 
+function findLayersUsingPredicate (predicate, object, container) {
+  const scope = container.children()
+	const	layerPredicate = NSPredicate.predicateWithFormat(predicate, object, container)
+	return [scope filteredArrayUsingPredicate:layerPredicate]
+}
+
+function getLinkLayers (container) {
+  return findLayersUsingPredicate('name BEGINSWITH %@', '->', container)
+}
+
 function onExportWireframes (context) {
   const document = context.document
   const exportPath = chooseFolder().path() + '/wireframes'
@@ -63,32 +85,6 @@ function onExportWireframes (context) {
   deleteFile(exportPath)
   createFolder(exportPath)
   createFolder(`${exportPath}/pages`)
-
-  // const pages = document.pages()
-
-  // pages.forEach(page => {
-  //   const artboards = page.artboards()
-  //
-    // artboards.forEach(artboard => {
-    //   const filename = `${exportPath}/assets/${page.name()}/${artboard.name()}.png`
-    //   const slice = MSSliceLayer.sliceLayerFromLayer(artboard)
-    //   const rect = artboard.absoluteRect()
-    //
-    //   slice.absoluteRect().setX(rect.origin().x)
-    //   slice.absoluteRect().setY(rect.origin().y)
-    //   slice.absoluteRect().setWidth(rect.size().width)
-    //   slice.absoluteRect().setHeight(rect.size().height)
-    //
-    //   const options = slice.exportOptions().exportFormats().lastObject()
-    //
-    //   options.scale = 2
-    //   options.format = 'png'
-    //
-    //   document.saveArtboardOrSlice_toFile(slice, filename)
-    //
-    //   slice.removeFromParent()
-    // })
-  // })
 
   // index.html
   writeTextToFile(`${exportPath}/index.html`, `
@@ -134,9 +130,15 @@ function onExportWireframes (context) {
       slice.absoluteRect().setHeight(rect.size().height)
       slice.exportOptions().exportFormats().lastObject().setScale(4)
 
+      createFolder(boardFolder)
+
       document.saveArtboardOrSlice_toFile(slice, boardImagePath)
 
       slice.removeFromParent()
+
+      const scope = artboard.children()
+      const layerPredicate = NSPredicate.predicateWithFormat('name BEGINSWITH %@', '->')
+      const linkLayers = [scope filteredArrayUsingPredicate:layerPredicate]
 
       writeTextToFile(boardIndexPath, `
         <head>
@@ -144,10 +146,25 @@ function onExportWireframes (context) {
           <style>
             body { margin: 0; }
             img { width: 100%; display: block; }
+            a { position: absolute; background: rgba(0, 255, 255, 0.1); outline: 2px rgba(0, 255, 255, 1) solid; }
+            .container { position: relative; }
           </style>
         </head>
         <body>
-          <img src="${boardImageName}" />
+          <div class="container">
+            ${map(linkLayers, layer => {
+              const stripped = layer.name().replace('->', '')
+              const layerRect = layer.rect()
+              const left = (layerRect.origin.x / rect.size().width) * 100 + '%'
+              const top = (layerRect.origin.y / rect.size().height) * 100 + '%'
+              const width = (layerRect.size.width / rect.size().width) * 100 + '%'
+              const height = (layerRect.size.height / rect.size().height) * 100 + '%'
+              const style = `left: ${left}; top: ${top}; width: ${width}; height: ${height};`
+              return `<a href="../${slug(stripped)}/index.html" style="${style}"></a>`
+            }).join('\n')}
+
+            <img src="${boardImageName}" />
+          </div>
         </body>
       `)
     })
