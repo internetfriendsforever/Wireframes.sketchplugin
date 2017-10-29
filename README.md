@@ -16,4 +16,5 @@ In Sketch:
 - Export from menu bar: Plugins -> Wireframes -> Export wireframes (⌘⇧w)
 
 ## TODO
-- Make links work
+- ~~Make links work~~
+- Make page overviews
